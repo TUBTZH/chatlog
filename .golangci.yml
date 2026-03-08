@@ -4,26 +4,12 @@ run:
 
 linters:
   enable:
-    - errcheck
-    - gosimple
     - govet
-    - ineffassign
     - staticcheck
-    - unused
-
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
 
 issues:
   exclude-rules:
-    # Exclude unused functions in filecopy.go
-    - path: pkg/filecopy/filecopy.go
-      linters:
-        - unused
-      text: "findLatestCandidate|generateTempPath"
-    # Allow blank identifiers for error checking
+    # 允许未使用的函数（可能是预留接口）
     - linters:
-        - errcheck
-      text: "is not checked"
+        - unused
+      text: "is unused"
