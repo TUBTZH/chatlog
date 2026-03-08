@@ -72,7 +72,7 @@ type MessageDBInfo struct {
 // DataSource 实现了 DataSource 接口
 type DataSource struct {
 	path string
-	dbm  *dbm.DBManager
+	dbm  dbm.DBManagerInterface
 
 	// 消息数据库信息
 	messageInfos []MessageDBInfo
@@ -410,10 +410,10 @@ func (ds *DataSource) GetContacts(ctx context.Context, key string, limit, offset
 	var args []interface{}
 
 	if key != "" {
-		// 按照关键字查询
-		query = `SELECT UserName, Alias, Remark, NickName, Reserved1 FROM Contact 
-                WHERE UserName = ? OR Alias = ? OR Remark = ? OR NickName = ?`
-		args = []interface{}{key, key, key, key}
+		// 模糊查询
+		query = `SELECT UserName, Alias, Remark, NickName, Reserved1 FROM Contact
+                WHERE UserName LIKE ? OR Alias LIKE ? OR Remark LIKE ? OR NickName LIKE ?`
+		args = []interface{}{"%" + key + "%", "%" + key + "%", "%" + key + "%", "%" + key + "%"}
 	} else {
 		// 查询所有联系人
 		query = `SELECT UserName, Alias, Remark, NickName, Reserved1 FROM Contact`
@@ -466,9 +466,9 @@ func (ds *DataSource) GetChatRooms(ctx context.Context, key string, limit, offse
 	var args []interface{}
 
 	if key != "" {
-		// 按照关键字查询
-		query = `SELECT ChatRoomName, Reserved2, RoomData FROM ChatRoom WHERE ChatRoomName = ?`
-		args = []interface{}{key}
+		// 模糊查询并关联contact表获取群名称
+		query = `SELECT c.ChatRoomName, c.Reserved2, c.RoomData, IFNULL(co.NickName,''), IFNULL(co.Remark,'') FROM ChatRoom c LEFT JOIN Contact co ON c.ChatRoomName = co.UserName WHERE c.ChatRoomName LIKE ? OR co.NickName LIKE ? OR co.Remark LIKE ?`
+		args = []interface{}{"%" + key + "%", "%" + key + "%", "%" + key + "%"}
 
 		// 执行查询
 		db, err := ds.dbm.GetDB(Contact)
@@ -483,18 +483,34 @@ func (ds *DataSource) GetChatRooms(ctx context.Context, key string, limit, offse
 
 		chatRooms := []*model.ChatRoom{}
 		for rows.Next() {
-			var chatRoomV3 model.ChatRoomV3
+			var chatRoomName string
+			var reserved2 string
+			var roomData []byte
+			var nickName string
+			var remark string
 			err := rows.Scan(
-				&chatRoomV3.ChatRoomName,
-				&chatRoomV3.Reserved2,
-				&chatRoomV3.RoomData,
+				&chatRoomName,
+				&reserved2,
+				&roomData,
+				&nickName,
+				&remark,
 			)
 
 			if err != nil {
 				return nil, errors.ScanRowFailed(err)
 			}
 
-			chatRooms = append(chatRooms, chatRoomV3.Wrap())
+			chatRoom := &model.ChatRoom{
+				Name: chatRoomName,
+			}
+			// 使用 LEFT JOIN 获取的群名称
+			if nickName != "" {
+				chatRoom.NickName = nickName
+			}
+			if remark != "" {
+				chatRoom.Remark = remark
+			}
+			chatRooms = append(chatRooms, chatRoom)
 		}
 
 		// 如果没有找到群聊，尝试通过联系人查找
@@ -503,7 +519,7 @@ func (ds *DataSource) GetChatRooms(ctx context.Context, key string, limit, offse
 			if err == nil && len(contacts) > 0 && strings.HasSuffix(contacts[0].UserName, "@chatroom") {
 				// 再次尝试通过用户名查找群聊
 				rows, err := db.QueryContext(ctx,
-					`SELECT ChatRoomName, Reserved2, RoomData FROM ChatRoom WHERE ChatRoomName = ?`,
+					`SELECT c.ChatRoomName, c.Reserved2, c.RoomData, IFNULL(co.NickName,''), IFNULL(co.Remark,'') FROM ChatRoom c LEFT JOIN Contact co ON c.ChatRoomName = co.UserName WHERE c.ChatRoomName = ?`,
 					contacts[0].UserName)
 
 				if err != nil {
@@ -512,18 +528,33 @@ func (ds *DataSource) GetChatRooms(ctx context.Context, key string, limit, offse
 				defer rows.Close()
 
 				for rows.Next() {
-					var chatRoomV3 model.ChatRoomV3
+					var chatRoomName string
+					var reserved2 string
+					var roomData []byte
+					var nickName string
+					var remark string
 					err := rows.Scan(
-						&chatRoomV3.ChatRoomName,
-						&chatRoomV3.Reserved2,
-						&chatRoomV3.RoomData,
+						&chatRoomName,
+						&reserved2,
+						&roomData,
+						&nickName,
+						&remark,
 					)
 
 					if err != nil {
 						return nil, errors.ScanRowFailed(err)
 					}
 
-					chatRooms = append(chatRooms, chatRoomV3.Wrap())
+					chatRoom := &model.ChatRoom{
+						Name: chatRoomName,
+					}
+					if nickName != "" {
+						chatRoom.NickName = nickName
+					}
+					if remark != "" {
+						chatRoom.Remark = remark
+					}
+					chatRooms = append(chatRooms, chatRoom)
 				}
 
 				// 如果群聊记录不存在，但联系人记录存在，创建一个模拟的群聊对象
