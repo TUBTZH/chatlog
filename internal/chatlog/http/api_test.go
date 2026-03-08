@@ -218,3 +218,58 @@ func TestChatLogAPI_SessionList(t *testing.T) {
 		})
 	}
 }
+
+// TestChatLogAPI_FuzzySearch 模糊搜索功能测试
+func TestChatLogAPI_FuzzySearch(t *testing.T) {
+	tests := []struct {
+		name       string
+		endpoint   string
+		query      string
+		wantStatus int
+	}{
+		{
+			name:       "chatroom fuzzy search by nickname",
+			endpoint:   "/api/v1/chatroom",
+			query:      "keyword=4403",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "chatroom fuzzy search by remark",
+			endpoint:   "/api/v1/chatroom",
+			query:      "keyword=康复",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "contact fuzzy search by alias",
+			endpoint:   "/api/v1/contact",
+			query:      "keyword=test",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "contact fuzzy search by remark",
+			endpoint:   "/api/v1/contact",
+			query:      "keyword=备注",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "contact fuzzy search by nickname",
+			endpoint:   "/api/v1/contact",
+			query:      "keyword=昵称",
+			wantStatus: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := http.Get(testServerAddr + tt.endpoint + "?" + tt.query)
+			if err != nil {
+				t.Skipf("Server not available: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("Expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+		})
+	}
+}
