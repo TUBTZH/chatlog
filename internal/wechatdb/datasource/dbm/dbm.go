@@ -16,6 +16,19 @@ import (
 	"github.com/sjzar/chatlog/pkg/filemonitor"
 )
 
+// DBManagerInterface 定义了数据库管理器的接口，用于测试时 mock
+type DBManagerInterface interface {
+	GetDB(name string) (*sql.DB, error)
+	GetDBs(name string) ([]*sql.DB, error)
+	GetDBPath(name string) ([]string, error)
+	AddGroup(group *Group) error
+	OpenDB(path string) (*sql.DB, error)
+	AddCallback(group string, callback func(event fsnotify.Event) error) error
+	Start() error
+	Stop() error
+	Close() error
+}
+
 type DBManager struct {
 	path    string
 	id      string

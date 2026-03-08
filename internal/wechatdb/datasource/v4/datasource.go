@@ -66,7 +66,7 @@ type MessageDBInfo struct {
 
 type DataSource struct {
 	path string
-	dbm  *dbm.DBManager
+	dbm  dbm.DBManagerInterface
 
 	// 消息数据库信息
 	messageInfos []MessageDBInfo
@@ -348,11 +348,12 @@ func (ds *DataSource) GetContacts(ctx context.Context, key string, limit, offset
 	var args []interface{}
 
 	if key != "" {
-		// 按照关键字查询
-		query = `SELECT username, local_type, alias, remark, nick_name 
-				FROM contact 
-				WHERE username = ? OR alias = ? OR remark = ? OR nick_name = ?`
-		args = []interface{}{key, key, key, key}
+		// 按照关键字模糊查询
+		likeKey := "%" + key + "%"
+		query = `SELECT username, local_type, alias, remark, nick_name
+				FROM contact
+				WHERE username LIKE ? OR alias LIKE ? OR remark LIKE ? OR nick_name LIKE ?`
+		args = []interface{}{likeKey, likeKey, likeKey, likeKey}
 	} else {
 		// 查询所有联系人
 		query = `SELECT username, local_type, alias, remark, nick_name FROM contact`
@@ -411,9 +412,13 @@ func (ds *DataSource) GetChatRooms(ctx context.Context, key string, limit, offse
 	}
 
 	if key != "" {
-		// 按照关键字查询
-		query = `SELECT username, owner, ext_buffer FROM chat_room WHERE username = ?`
-		args = []interface{}{key}
+		// 按照关键字模糊查询，并关联contact表获取群名称
+		likeKey := "%" + key + "%"
+		query = `SELECT c.username, c.owner, c.ext_buffer, co.nick_name, co.remark
+				FROM chat_room c
+				LEFT JOIN contact co ON c.username = co.username
+				WHERE c.username LIKE ? OR co.nick_name LIKE ? OR co.remark LIKE ?`
+		args = []interface{}{likeKey, likeKey, likeKey}
 
 		rows, err := db.QueryContext(ctx, query, args...)
 		if err != nil {
@@ -424,17 +429,24 @@ func (ds *DataSource) GetChatRooms(ctx context.Context, key string, limit, offse
 		chatRooms := []*model.ChatRoom{}
 		for rows.Next() {
 			var chatRoomV4 model.ChatRoomV4
+			var nickName, remark string
 			err := rows.Scan(
 				&chatRoomV4.UserName,
 				&chatRoomV4.Owner,
 				&chatRoomV4.ExtBuffer,
+				&nickName,
+				&remark,
 			)
 
 			if err != nil {
 				return nil, errors.ScanRowFailed(err)
 			}
 
-			chatRooms = append(chatRooms, chatRoomV4.Wrap())
+			chatRoom := chatRoomV4.Wrap()
+			// 设置从contact表获取的群名称
+			chatRoom.NickName = nickName
+			chatRoom.Remark = remark
+			chatRooms = append(chatRooms, chatRoom)
 		}
 
 		// 如果没有找到群聊，尝试通过联系人查找
@@ -442,9 +454,13 @@ func (ds *DataSource) GetChatRooms(ctx context.Context, key string, limit, offse
 			contacts, err := ds.GetContacts(ctx, key, 1, 0)
 			if err == nil && len(contacts) > 0 && strings.HasSuffix(contacts[0].UserName, "@chatroom") {
 				// 再次尝试通过用户名查找群聊
+				likeKey := "%" + contacts[0].UserName + "%"
 				rows, err := db.QueryContext(ctx,
-					`SELECT username, owner, ext_buffer FROM chat_room WHERE username = ?`,
-					contacts[0].UserName)
+					`SELECT c.username, c.owner, c.ext_buffer, co.nick_name, co.remark
+					FROM chat_room c
+					LEFT JOIN contact co ON c.username = co.username
+					WHERE c.username LIKE ?`,
+					likeKey)
 
 				if err != nil {
 					return nil, errors.QueryFailed(query, err)
@@ -453,23 +469,31 @@ func (ds *DataSource) GetChatRooms(ctx context.Context, key string, limit, offse
 
 				for rows.Next() {
 					var chatRoomV4 model.ChatRoomV4
+					var nickName, remark string
 					err := rows.Scan(
 						&chatRoomV4.UserName,
 						&chatRoomV4.Owner,
 						&chatRoomV4.ExtBuffer,
+						&nickName,
+						&remark,
 					)
 
 					if err != nil {
 						return nil, errors.ScanRowFailed(err)
 					}
 
-					chatRooms = append(chatRooms, chatRoomV4.Wrap())
+					chatRoom := chatRoomV4.Wrap()
+					chatRoom.NickName = nickName
+					chatRoom.Remark = remark
+					chatRooms = append(chatRooms, chatRoom)
 				}
 
 				// 如果群聊记录不存在，但联系人记录存在，创建一个模拟的群聊对象
 				if len(chatRooms) == 0 {
 					chatRooms = append(chatRooms, &model.ChatRoom{
 						Name:             contacts[0].UserName,
+						NickName:         contacts[0].NickName,
+						Remark:           contacts[0].Remark,
 						Users:            make([]model.ChatRoomUser, 0),
 						User2DisplayName: make(map[string]string),
 					})
@@ -479,11 +503,13 @@ func (ds *DataSource) GetChatRooms(ctx context.Context, key string, limit, offse
 
 		return chatRooms, nil
 	} else {
-		// 查询所有群聊
-		query = `SELECT username, owner, ext_buffer FROM chat_room`
+		// 查询所有群聊，并关联contact表获取群名称
+		query = `SELECT c.username, c.owner, c.ext_buffer, co.nick_name, co.remark
+				FROM chat_room c
+				LEFT JOIN contact co ON c.username = co.username`
 
 		// 添加排序、分页
-		query += ` ORDER BY username`
+		query += ` ORDER BY c.username`
 		if limit > 0 {
 			query += fmt.Sprintf(" LIMIT %d", limit)
 			if offset > 0 {
@@ -501,17 +527,23 @@ func (ds *DataSource) GetChatRooms(ctx context.Context, key string, limit, offse
 		chatRooms := []*model.ChatRoom{}
 		for rows.Next() {
 			var chatRoomV4 model.ChatRoomV4
+			var nickName, remark string
 			err := rows.Scan(
 				&chatRoomV4.UserName,
 				&chatRoomV4.Owner,
 				&chatRoomV4.ExtBuffer,
+				&nickName,
+				&remark,
 			)
 
 			if err != nil {
 				return nil, errors.ScanRowFailed(err)
 			}
 
-			chatRooms = append(chatRooms, chatRoomV4.Wrap())
+			chatRoom := chatRoomV4.Wrap()
+			chatRoom.NickName = nickName
+			chatRoom.Remark = remark
+			chatRooms = append(chatRooms, chatRoom)
 		}
 
 		return chatRooms, nil
