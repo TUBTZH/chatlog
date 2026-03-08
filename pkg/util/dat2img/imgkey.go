@@ -19,9 +19,9 @@ func NewImgKeyValidator(path string) *AesKeyValidator {
 	}
 
 	// Walk the directory to find *.dat files (excluding *_t.dat files)
-	err := filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
+	_ = filepath.Walk(path, func(filePath string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
 
 		// Skip directories
