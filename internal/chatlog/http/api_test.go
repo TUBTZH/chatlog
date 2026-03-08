@@ -44,3 +44,48 @@ func TestChatLogAPI_Health(t *testing.T) {
 		t.Errorf("Expected status 200, got %d", resp.StatusCode)
 	}
 }
+
+// TestChatLogAPI_ChatLog 聊天记录查询API测试
+func TestChatLogAPI_ChatLog(t *testing.T) {
+	tests := []struct {
+		name       string
+		query      string
+		wantStatus int
+		wantKeys   []string
+	}{
+		{
+			name:       "query with valid date range",
+			query:      "time=2025-01-01~2026-12-31&talker=19631256769@chatroom&limit=5",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "query without time param",
+			query:      "talker=test",
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name:       "query without talker param",
+			query:      "time=2025-01-01",
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name:       "query with last-7d",
+			query:      "time=last-7d&talker=test&limit=10",
+			wantStatus: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := http.Get(testServerAddr + "/api/v1/chatlog?" + tt.query)
+			if err != nil {
+				t.Skipf("Server not available: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("Expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+		})
+	}
+}
