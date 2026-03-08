@@ -32,3 +32,7 @@ go.work.sum
 
 chatlog.exe# Added by goreleaser init:
 dist/
+
+# Superpowers worktrees
+.worktrees/
+worktrees/
