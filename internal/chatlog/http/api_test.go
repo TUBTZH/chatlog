@@ -89,3 +89,132 @@ func TestChatLogAPI_ChatLog(t *testing.T) {
 		})
 	}
 }
+
+// TestChatLogAPI_ContactList 联系人列表API测试
+func TestChatLogAPI_ContactList(t *testing.T) {
+	tests := []struct {
+		name       string
+		query      string
+		wantStatus int
+	}{
+		{
+			name:       "get all contacts",
+			query:      "",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "search contacts with keyword",
+			query:      "keyword=test",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "search with limit",
+			query:      "limit=10",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "search with limit and offset",
+			query:      "limit=10&offset=10",
+			wantStatus: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			endpoint := "/api/v1/contact"
+			if tt.query != "" {
+				endpoint += "?" + tt.query
+			}
+			resp, err := http.Get(testServerAddr + endpoint)
+			if err != nil {
+				t.Skipf("Server not available: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("Expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+		})
+	}
+}
+
+// TestChatLogAPI_ChatRoomList 群聊列表API测试
+func TestChatLogAPI_ChatRoomList(t *testing.T) {
+	tests := []struct {
+		name       string
+		query      string
+		wantStatus int
+	}{
+		{
+			name:       "get all chatrooms",
+			query:      "",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "search chatrooms with keyword",
+			query:      "keyword=4403",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "search with fuzzy match",
+			query:      "keyword=康复",
+			wantStatus: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			endpoint := "/api/v1/chatroom"
+			if tt.query != "" {
+				endpoint += "?" + tt.query
+			}
+			resp, err := http.Get(testServerAddr + endpoint)
+			if err != nil {
+				t.Skipf("Server not available: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("Expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+		})
+	}
+}
+
+// TestChatLogAPI_SessionList 会话列表API测试
+func TestChatLogAPI_SessionList(t *testing.T) {
+	tests := []struct {
+		name       string
+		query      string
+		wantStatus int
+	}{
+		{
+			name:       "get all sessions",
+			query:      "",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "search sessions with keyword",
+			query:      "keyword=test",
+			wantStatus: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			endpoint := "/api/v1/session"
+			if tt.query != "" {
+				endpoint += "?" + tt.query
+			}
+			resp, err := http.Get(testServerAddr + endpoint)
+			if err != nil {
+				t.Skipf("Server not available: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("Expected status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+		})
+	}
+}
