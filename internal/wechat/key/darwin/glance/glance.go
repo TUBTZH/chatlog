@@ -116,7 +116,7 @@ func (g *Glance) Read() ([]byte, error) {
 	case err := <-errCh:
 		return nil, errors.ReadMemoryFailed(err)
 	case <-time.After(30 * time.Second):
-		cmd.Process.Kill()
+		_ = cmd.Process.Kill()
 		return nil, errors.ErrReadMemoryTimeout
 	}
 
@@ -267,7 +267,7 @@ func (g *Glance) streamReadRegions(ctx context.Context, regions []MemRegion, mem
 
 	// First attach to the process
 	if _, err := fmt.Fprintf(stdin, "process attach --pid %d\n", g.PID); err != nil {
-		cmd.Process.Kill()
+		_ = cmd.Process.Kill()
 		return errors.RunCmdFailed(err)
 	}
 
@@ -282,11 +282,11 @@ func (g *Glance) streamReadRegions(ctx context.Context, regions []MemRegion, mem
 		select {
 		case <-ctx.Done():
 			stdin.Close()
-			cmd.Process.Kill()
+			_ = cmd.Process.Kill()
 			return ctx.Err()
 		case err := <-processingErr:
 			stdin.Close()
-			cmd.Process.Kill()
+			_ = cmd.Process.Kill()
 			return err
 		default:
 		}
@@ -370,7 +370,7 @@ func (g *Glance) streamReadRegions(ctx context.Context, regions []MemRegion, mem
 			log.Err(err).Msg("lldb process exited with error")
 		}
 	case <-time.After(10 * time.Second):
-		cmd.Process.Kill()
+		_ = cmd.Process.Kill()
 		log.Warn().Msg("Timeout waiting for lldb to complete, killed the process")
 	}
 

@@ -44,8 +44,8 @@ func (w *SSEWriter) WriteMessage(data string) {
 }
 
 func (w *SSEWriter) WriteEvent(event string, data string) {
-	w.c.Writer.WriteString(fmt.Sprintf("event: %s\n", event))
-	w.c.Writer.WriteString(fmt.Sprintf("data: %s\n\n", data))
+	_, _ = w.c.Writer.WriteString(fmt.Sprintf("event: %s\n", event))
+	_, _ = w.c.Writer.WriteString(fmt.Sprintf("data: %s\n\n", data))
 	w.c.Writer.Flush()
 }
 
@@ -64,15 +64,15 @@ func (w *SSEWriter) ping() {
 // event: endpoint
 // data: /message?sessionId=285d67ee-1c17-40d9-ab03-173d5ff48419
 func (w *SSEWriter) WriteEndpoing() {
-	w.c.Writer.WriteString(fmt.Sprintf("event: endpoint\n"))
-	w.c.Writer.WriteString(fmt.Sprintf("data: /message?sessionId=%s\n\n", w.id))
+	_, _ = w.c.Writer.WriteString(fmt.Sprintf("event: endpoint\n"))
+	_, _ = w.c.Writer.WriteString(fmt.Sprintf("data: /message?sessionId=%s\n\n", w.id))
 	w.c.Writer.Flush()
 }
 
 // WritePing
 // : ping - 2025-03-16 06:41:51.280928+00:00
 func (w *SSEWriter) writePing() {
-	w.c.Writer.WriteString(fmt.Sprintf(": ping - %s\n\n", time.Now().Format("2006-01-02 15:04:05.999999-07:00")))
+	_, _ = w.c.Writer.WriteString(fmt.Sprintf(": ping - %s\n\n", time.Now().Format("2006-01-02 15:04:05.999999-07:00")))
 }
 
 // SSE Session

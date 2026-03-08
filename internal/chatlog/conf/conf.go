@@ -79,7 +79,7 @@ func LoadServiceConfig(configPath string, cmdConf map[string]any) (*ServerConfig
 					if !DataDirConfigs[key] {
 						continue
 					}
-					scm.SetConfig(key, value)
+					_ = scm.SetConfig(key, value)
 				}
 			}
 		}

@@ -43,7 +43,7 @@ func (d *DBManager) AddGroup(g *Group) error {
 		return err
 	}
 	fg.AddCallback(d.Callback)
-	d.fm.AddGroup(fg)
+	_ = d.fm.AddGroup(fg)
 	d.mutex.Lock()
 	d.fgs[g.Name] = fg
 	d.mutex.Unlock()
