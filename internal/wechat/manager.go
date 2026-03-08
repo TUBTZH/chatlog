@@ -13,7 +13,7 @@ var DefaultManager *Manager
 
 func init() {
 	DefaultManager = NewManager()
-	DefaultManager.Load()
+	_ = DefaultManager.Load()
 }
 
 func Load() error {

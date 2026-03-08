@@ -64,8 +64,8 @@ func New(ds datasource.DataSource) (*Repository, error) {
 		return nil, errors.InitCacheFailed(err)
 	}
 
-	ds.SetCallback("contact", r.contactCallback)
-	ds.SetCallback("chatroom", r.chatroomCallback)
+	_ = ds.SetCallback("contact", r.contactCallback)
+	_ = ds.SetCallback("chatroom", r.chatroomCallback)
 
 	return r, nil
 }

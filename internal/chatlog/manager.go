@@ -59,12 +59,12 @@ func (m *Manager) Run(configPath string) error {
 	if m.ctx.HTTPEnabled {
 		// 启动HTTP服务
 		if err := m.StartService(); err != nil {
-			m.StopService()
+			_ = m.StopService()
 		}
 	}
 	// 启动终端UI
 	m.app = NewApp(m.ctx, m)
-	m.app.Run() // 阻塞
+	_ = m.app.Run() // 阻塞
 	return nil
 }
 
@@ -89,7 +89,7 @@ func (m *Manager) Switch(info *iwechat.Account, history string) error {
 		// 启动HTTP服务
 		if err := m.StartService(); err != nil {
 			log.Info().Err(err).Msg("启动服务失败")
-			m.StopService()
+			_ = m.StopService()
 		}
 	}
 	return nil
@@ -103,14 +103,14 @@ func (m *Manager) StartService() error {
 	}
 
 	if err := m.http.Start(); err != nil {
-		m.db.Stop()
+		_ = m.db.Stop()
 		return err
 	}
 
 	// 如果是 4.0 版本，更新下 xorkey
 	if m.ctx.Version == 4 {
 		dat2img.SetAesKey(m.ctx.ImgKey)
-		go dat2img.ScanAndSetXorKey(m.ctx.DataDir)
+		go func() { _, _ = dat2img.ScanAndSetXorKey(m.ctx.DataDir) }()
 	}
 
 	// 更新状态
@@ -355,7 +355,7 @@ func (m *Manager) CommandHTTPServer(configPath string, cmdConf map[string]any) e
 	version := m.sc.GetVersion()
 	if version == 4 && len(dataDir) != 0 {
 		dat2img.SetAesKey(m.sc.GetImgKey())
-		go dat2img.ScanAndSetXorKey(dataDir)
+		go func() { _, _ = dat2img.ScanAndSetXorKey(dataDir) }()
 	}
 
 	log.Info().Msgf("server config: %+v", m.sc)

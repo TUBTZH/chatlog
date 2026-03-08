@@ -49,7 +49,7 @@ func (s *Service) Start() error {
 	}
 	s.SetReady()
 	s.db = db
-	s.initWebhook()
+	_ = s.initWebhook()
 	return nil
 }
 

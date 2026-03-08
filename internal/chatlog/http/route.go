@@ -132,9 +132,9 @@ func (s *Service) handleChatlog(c *gin.Context) {
 		c.Writer.Flush()
 
 		csvWriter := csv.NewWriter(c.Writer)
-		csvWriter.Write([]string{"Time", "SenderName", "Sender", "TalkerName", "Talker", "Content"})
+		_ = csvWriter.Write([]string{"Time", "SenderName", "Sender", "TalkerName", "Talker", "Content"})
 		for _, m := range messages {
-			csvWriter.Write(m.CSV(c.Request.Host))
+			_ = csvWriter.Write(m.CSV(c.Request.Host))
 		}
 		csvWriter.Flush()
 	case "json":
@@ -148,8 +148,8 @@ func (s *Service) handleChatlog(c *gin.Context) {
 		c.Writer.Flush()
 
 		for _, m := range messages {
-			c.Writer.WriteString(m.PlainText(strings.Contains(q.Talker, ","), util.PerfectTimeFormat(start, end), c.Request.Host))
-			c.Writer.WriteString("\n")
+			_, _ = c.Writer.WriteString(m.PlainText(strings.Contains(q.Talker, ","), util.PerfectTimeFormat(start, end), c.Request.Host))
+			_, _ = c.Writer.WriteString("\n")
 			c.Writer.Flush()
 		}
 	}
@@ -192,9 +192,9 @@ func (s *Service) handleContacts(c *gin.Context) {
 		c.Writer.Header().Set("Connection", "keep-alive")
 		c.Writer.Flush()
 
-		c.Writer.WriteString("UserName,Alias,Remark,NickName\n")
+		_, _ = c.Writer.WriteString("UserName,Alias,Remark,NickName\n")
 		for _, contact := range list.Items {
-			c.Writer.WriteString(fmt.Sprintf("%s,%s,%s,%s\n", contact.UserName, contact.Alias, contact.Remark, contact.NickName))
+			_, _ = c.Writer.WriteString(fmt.Sprintf("%s,%s,%s,%s\n", contact.UserName, contact.Alias, contact.Remark, contact.NickName))
 		}
 		c.Writer.Flush()
 	}
@@ -236,9 +236,9 @@ func (s *Service) handleChatRooms(c *gin.Context) {
 		c.Writer.Header().Set("Connection", "keep-alive")
 		c.Writer.Flush()
 
-		c.Writer.WriteString("Name,Remark,NickName,Owner,UserCount\n")
+		_, _ = c.Writer.WriteString("Name,Remark,NickName,Owner,UserCount\n")
 		for _, chatRoom := range list.Items {
-			c.Writer.WriteString(fmt.Sprintf("%s,%s,%s,%s,%d\n", chatRoom.Name, chatRoom.Remark, chatRoom.NickName, chatRoom.Owner, len(chatRoom.Users)))
+			_, _ = c.Writer.WriteString(fmt.Sprintf("%s,%s,%s,%s,%d\n", chatRoom.Name, chatRoom.Remark, chatRoom.NickName, chatRoom.Owner, len(chatRoom.Users)))
 		}
 		c.Writer.Flush()
 	}
@@ -271,9 +271,9 @@ func (s *Service) handleSessions(c *gin.Context) {
 		c.Writer.Header().Set("Connection", "keep-alive")
 		c.Writer.Flush()
 
-		c.Writer.WriteString("UserName,NOrder,NickName,Content,NTime\n")
+		_, _ = c.Writer.WriteString("UserName,NOrder,NickName,Content,NTime\n")
 		for _, session := range sessions.Items {
-			c.Writer.WriteString(fmt.Sprintf("%s,%d,%s,%s,%s\n", session.UserName, session.NOrder, session.NickName, strings.ReplaceAll(session.Content, "\n", "\\n"), session.NTime))
+			_, _ = c.Writer.WriteString(fmt.Sprintf("%s,%d,%s,%s,%s\n", session.UserName, session.NOrder, session.NickName, strings.ReplaceAll(session.Content, "\n", "\\n"), session.NTime))
 		}
 		c.Writer.Flush()
 	case "json":
@@ -285,8 +285,8 @@ func (s *Service) handleSessions(c *gin.Context) {
 		c.Writer.Header().Set("Connection", "keep-alive")
 		c.Writer.Flush()
 		for _, session := range sessions.Items {
-			c.Writer.WriteString(session.PlainText(120))
-			c.Writer.WriteString("\n")
+			_, _ = c.Writer.WriteString(session.PlainText(120))
+			_, _ = c.Writer.WriteString("\n")
 		}
 		c.Writer.Flush()
 	}

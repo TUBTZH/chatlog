@@ -16,8 +16,8 @@ func TestXxx(t *testing.T) {
 	}
 
 	d := NewDBManager(path)
-	d.AddGroup(g)
-	d.Start()
+	_ = d.AddGroup(g)
+	_ = d.Start()
 
 	i := 0
 	for {

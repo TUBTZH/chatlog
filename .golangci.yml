@@ -1,0 +1,32 @@
+run:
+  timeout: 5m
+  tests: false
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  unused:
+    # Allow unused functions in test files
+    tests: false
+
+issues:
+  exclude-rules:
+    # Exclude unused functions in filecopy.go
+    - path: pkg/filecopy/filecopy.go
+      linters:
+        - unused
+      text: "findLatestCandidate|generateTempPath"
+    # Allow blank identifiers for error checking
+    - linters:
+        - errcheck
+      text: "is not checked"

@@ -49,7 +49,7 @@ func NewService(conf Config) *Service {
 
 // GetWeChatInstances returns all running WeChat instances
 func (s *Service) GetWeChatInstances() []*wechat.Account {
-	wechat.Load()
+	_ = wechat.Load()
 	return wechat.GetAccounts()
 }
 
@@ -76,7 +76,7 @@ func (s *Service) StartAutoDecrypt() error {
 	dbGroup.AddCallback(s.DecryptFileCallback)
 
 	s.fm = filemonitor.NewFileMonitor()
-	s.fm.AddGroup(dbGroup)
+	_ = s.fm.AddGroup(dbGroup)
 	if err := s.fm.Start(); err != nil {
 		log.Debug().Err(err).Msg("failed to start file monitor")
 		return err
@@ -136,7 +136,7 @@ func (s *Service) waitAndProcess(dbFile string) {
 			s.mutex.Unlock()
 
 			log.Debug().Msgf("Processing file: %s", dbFile)
-			s.DecryptDBFile(dbFile)
+			_ = s.DecryptDBFile(dbFile)
 			return
 		}
 		s.mutex.Unlock()
@@ -170,7 +170,7 @@ func (s *Service) DecryptDBFile(dbFile string) error {
 	if err := decryptor.Decrypt(context.Background(), dbFile, s.conf.GetDataKey(), outputFile); err != nil {
 		if err == errors.ErrAlreadyDecrypted {
 			if data, err := os.ReadFile(dbFile); err == nil {
-				outputFile.Write(data)
+				_, _ = outputFile.Write(data)
 			}
 			return nil
 		}

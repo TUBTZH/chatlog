@@ -81,7 +81,7 @@ func New(path string) (*DataSource, error) {
 	}
 
 	for _, g := range Groups {
-		ds.dbm.AddGroup(g)
+		_ = ds.dbm.AddGroup(g)
 	}
 
 	if err := ds.dbm.Start(); err != nil {
@@ -92,7 +92,7 @@ func New(path string) (*DataSource, error) {
 		return nil, errors.DBInitFailed(err)
 	}
 
-	ds.dbm.AddCallback(Message, func(event fsnotify.Event) error {
+	_ = ds.dbm.AddCallback(Message, func(event fsnotify.Event) error {
 		if !event.Op.Has(fsnotify.Create) {
 			return nil
 		}
@@ -168,9 +168,7 @@ func (ds *DataSource) GetMessages(ctx context.Context, startTime, endTime time.T
 	if len(dbInfos) == 0 {
 		// Timestamp 表可能没有更新，使用所有消息数据库
 		log.Debug().Msgf("No database found for time range %v - %v, using all databases", startTime, endTime)
-		for _, info := range ds.messageInfos {
-			dbInfos = append(dbInfos, info)
-		}
+		dbInfos = append(dbInfos, ds.messageInfos...)
 	}
 
 	// 如果仍然没有数据库，返回空结果而不是错误

@@ -64,7 +64,7 @@ func (w *SSEWriter) ping() {
 // event: endpoint
 // data: /message?sessionId=285d67ee-1c17-40d9-ab03-173d5ff48419
 func (w *SSEWriter) WriteEndpoing() {
-	_, _ = w.c.Writer.WriteString(fmt.Sprintf("event: endpoint\n"))
+	_, _ = w.c.Writer.WriteString("event: endpoint\n")
 	_, _ = w.c.Writer.WriteString(fmt.Sprintf("data: /message?sessionId=%s\n\n", w.id))
 	w.c.Writer.Flush()
 }

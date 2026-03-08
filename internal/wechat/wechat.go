@@ -41,7 +41,7 @@ func NewAccount(proc *model.Process) *Account {
 // RefreshStatus 刷新账号的进程状态
 func (a *Account) RefreshStatus() error {
 	// 查找所有微信进程
-	Load()
+	_ = Load()
 
 	process, err := GetProcess(a.Name)
 	if err != nil {

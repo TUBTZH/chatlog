@@ -39,7 +39,7 @@ func (s *Session) WriteResponse(req *Request, data interface{}) error {
 	if err != nil {
 		return err
 	}
-	s.Write(b)
+	_, _ = s.Write(b)
 	return nil
 }
 

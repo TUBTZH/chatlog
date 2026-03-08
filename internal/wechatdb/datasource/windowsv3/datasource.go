@@ -87,7 +87,7 @@ func New(path string) (*DataSource, error) {
 	}
 
 	for _, g := range Groups {
-		ds.dbm.AddGroup(g)
+		_ = ds.dbm.AddGroup(g)
 	}
 
 	if err := ds.dbm.Start(); err != nil {
@@ -98,7 +98,7 @@ func New(path string) (*DataSource, error) {
 		return nil, errors.DBInitFailed(err)
 	}
 
-	ds.dbm.AddCallback(Message, func(event fsnotify.Event) error {
+	_ = ds.dbm.AddCallback(Message, func(event fsnotify.Event) error {
 		if !event.Op.Has(fsnotify.Create) {
 			return nil
 		}

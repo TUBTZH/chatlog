@@ -142,7 +142,7 @@ func (a *App) refresh() {
 			return
 		case <-tick.C:
 			if a.ctx.AutoDecrypt || a.ctx.HTTPEnabled {
-				a.m.RefreshSession()
+				_ = a.m.RefreshSession()
 			}
 			a.infoBar.UpdateAccount(a.ctx.Account)
 			a.infoBar.UpdateBasicInfo(a.ctx.PID, a.ctx.FullVersion, a.ctx.ExePath)
@@ -530,7 +530,7 @@ func (a *App) settingHTTPPort() {
 
 	// 添加按钮 - 点击保存时才设置HTTP地址
 	formView.AddButton("保存", func() {
-		a.m.SetHTTPAddr(tempHTTPAddr) // 在这里设置HTTP地址
+		_ = a.m.SetHTTPAddr(tempHTTPAddr) // 在这里设置HTTP地址
 		a.mainPages.RemovePage("submenu2")
 		a.showInfo("HTTP 地址已设置为 " + a.ctx.HTTPAddr)
 	})
