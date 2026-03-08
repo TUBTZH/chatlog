@@ -51,7 +51,7 @@ func (m *MessageDarwinV3) Wrap(talker string) *Message {
 		_m.Sender = talker
 	}
 
-	_m.ParseMediaInfo(content)
+	_ = _m.ParseMediaInfo(content)
 
 	return _m
 }

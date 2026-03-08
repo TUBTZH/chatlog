@@ -293,8 +293,8 @@ func Transmux2MP4(data []byte) ([]byte, error) {
 	totalSize := init.Size() + seg.Size()
 	sw := bits.NewFixedSliceWriter(int(totalSize))
 
-	init.EncodeSW(sw)
-	seg.EncodeSW(sw)
+	_ = init.EncodeSW(sw)
+	_ = seg.EncodeSW(sw)
 
 	return sw.Bytes(), nil
 }
@@ -327,8 +327,8 @@ func TransmuxAnime2MP4(animeFrames [][]byte, maskFrames [][]byte) ([]byte, error
 	totalSize := init.Size() + seg.Size()
 	sw := bits.NewFixedSliceWriter(int(totalSize))
 
-	init.EncodeSW(sw)
-	seg.EncodeSW(sw)
+	_ = init.EncodeSW(sw)
+	_ = seg.EncodeSW(sw)
 
 	return sw.Bytes(), nil
 }

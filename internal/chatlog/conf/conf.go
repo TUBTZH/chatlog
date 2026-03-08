@@ -62,7 +62,7 @@ func LoadServiceConfig(configPath string, cmdConf map[string]any) (*ServerConfig
 
 	// Load cmd Conf
 	for key, value := range cmdConf {
-		scm.SetConfig(key, value)
+		_ = scm.SetConfig(key, value)
 	}
 
 	if err := scm.Load(conf); err != nil {

@@ -77,7 +77,7 @@ func (m *MessageV4) Wrap(talker string) *Message {
 		}
 	}
 
-	_m.ParseMediaInfo(content)
+	_ = _m.ParseMediaInfo(content)
 
 	// 语音消息
 	if _m.Type == 34 {

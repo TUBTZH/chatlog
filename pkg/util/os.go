@@ -92,7 +92,7 @@ func DefaultWorkDir(account string) string {
 
 func GetDirSize(dir string) string {
 	var size int64
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err == nil {
 			size += info.Size()
 		}

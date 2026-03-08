@@ -77,7 +77,7 @@ func (m *MessageV3) Wrap() *Message {
 		}
 	}
 
-	_m.ParseMediaInfo(_m.Content)
+	_ = _m.ParseMediaInfo(_m.Content)
 
 	// 语音消息
 	if _m.Type == 34 {
