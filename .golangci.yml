@@ -1,15 +1,25 @@
 run:
   timeout: 5m
-  tests: false
+  modules-download-mode: readonly
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
 
 linters:
   enable:
+    - errcheck
+    - gosimple
     - govet
+    - ineffassign
     - staticcheck
+    - typecheck
+    - unused
+    - gofmt
+    - goimports
 
-issues:
-  exclude-rules:
-    # 允许未使用的函数（可能是预留接口）
-    - linters:
-        - unused
-      text: "is unused"
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
