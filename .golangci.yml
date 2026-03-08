@@ -15,9 +15,6 @@ linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
-  unused:
-    # Allow unused functions in test files
-    tests: false
 
 issues:
   exclude-rules:
