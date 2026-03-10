@@ -97,7 +97,9 @@ func (s *Service) handleChatlog(c *gin.Context) {
 		Limit   int    `form:"limit"`
 		Offset  int    `form:"offset"`
 		Format  string `form:"format"`
-	}{}
+	}{
+		Limit:  5000, // 默认获取更多消息
+	}
 
 	if err := c.BindQuery(&q); err != nil {
 		errors.Err(c, err)

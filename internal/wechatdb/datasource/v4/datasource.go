@@ -237,7 +237,7 @@ func (ds *DataSource) GetMessages(ctx context.Context, startTime, endTime time.T
 				FROM %s m
 				LEFT JOIN Name2Id n ON m.real_sender_id = n.rowid
 				WHERE %s
-				ORDER BY m.create_time DESC
+				ORDER BY m.create_time ASC
 			`, tableName, strings.Join(conditions, " AND "))
 
 			// 执行查询
